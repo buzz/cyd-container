@@ -1,0 +1,120 @@
+substitutions:
+  device_name: yellowtft1
+  friendly_name: TFT Test
+
+esphome:
+  name: $device_name
+  friendly_name: $friendly_name
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO
+
+ota:
+  platform: esphome
+  password: !secret ota_pwd
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pwd
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: $device_name Fallback Hotspot
+    password: !secret ap_pwd
+
+captive_portal:
+
+font:
+  - file: fonts/Arimo-Regular.ttf
+    id: arimo20
+    size: 20
+    glyphs: "!\"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ abcdefghijklmnopqrstuvwxyzåäö"
+
+# Create Home Assistant blue color
+color:
+  - id: ha_blue
+    hex: 51c0f2
+
+output:
+  - platform: ledc
+    pin: GPIO21
+    id: backlight_pwm
+
+light:
+  - platform: monochromatic
+    output: backlight_pwm
+    name: Display Backlight
+    id: backlight
+    restore_mode: ALWAYS_ON
+
+globals:
+  - id: x_min
+    type: int
+    initial_value: '500'
+  - id: x_max
+    type: int
+    initial_value: '500'
+  - id: y_min
+    type: int
+    initial_value: '500'
+  - id: y_max
+    type: int
+    initial_value: '500'
+
+spi:
+  - id: tft
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+    miso_pin: GPIO12
+  - id: touch
+    clk_pin: GPIO25
+    mosi_pin: GPIO32
+    miso_pin: GPIO39
+
+display:
+  - platform: ili9xxx
+    model: ILI9341
+    spi_id: tft
+    cs_pin: GPIO15
+    dc_pin: GPIO2
+    invert_colors: false
+    color_palette: 8BIT
+    auto_clear_enabled: true
+    rotation: 0
+    dimensions:
+      width: 240
+      height: 320
+    lambda: |-
+      auto touch = id(spi_touchscreen)->get_touch();
+      if (touch) // or touch.has_value()
+        it.filled_circle(touch.value().x, touch.value().y, 10, ha_blue);
+
+touchscreen:
+  platform: xpt2046
+  id: spi_touchscreen
+  spi_id: touch
+  cs_pin: GPIO33
+  interrupt_pin: GPIO36
+  calibration:
+    x_min: 290
+    x_max: 3940
+    y_min: 298
+    y_max: 3550
+  transform:
+    mirror_x: true
+  on_touch:
+    - lambda: |-
+        const auto &t = touch;
+
+        if (t.x_raw > id(x_max)) id(x_max) = t.x_raw;
+        if (t.x_raw < id(x_min)) id(x_min) = t.x_raw;
+        if (t.y_raw > id(y_max)) id(y_max) = t.y_raw;
+        if (t.y_raw < id(y_min)) id(y_min) = t.y_raw;
+
+        ESP_LOGI("cal", "x_min=%d x_max=%d y_min=%d y_max=%d",
+                id(x_min), id(x_max), id(y_min), id(y_max));
