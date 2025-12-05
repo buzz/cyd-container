@@ -59,19 +59,25 @@ sensor:
       name: Temperature
       on_value:
         then:
-          - lambda: |-
-              static char temp_buffer[16];
-              snprintf(temp_buffer, sizeof(temp_buffer), "%.1f °C", x);
-              lv_label_set_text(id(label_temp), temp_buffer);
-              lv_label_set_text(id(label_thermostat_current_temp), temp_buffer);
+          - lvgl.label.update:
+              id: label_info_current_temp
+              text:
+                format: "%.1f °C"
+                args: [x]
+          - lvgl.label.update:
+              id: label_thermostat_current_temp
+              text:
+                format: "%.1f °C"
+                args: [x]
     humidity:
       name: Humidity
       on_value:
         then:
-          - lambda: |-
-              static char humid_buffer[16];
-              snprintf(humid_buffer, sizeof(humid_buffer), "%.1f %%", x);
-              lv_label_set_text(id(label_humid), humid_buffer);
+          - lvgl.label.update:
+              id: label_info_humidity
+              text:
+                format: "%.1f %%"
+                args: [x]
 
   # Set up sensor for LDR (light meter)
   - platform: adc
@@ -91,10 +97,11 @@ sensor:
     unit_of_measurement: Light %
     on_value:
       then:
-        - lambda: |-
-            static char buffer[16];
-            snprintf(buffer, sizeof(buffer), "%.0f %%", id(ldr_percent).state);
-            lv_label_set_text(id(label_ldr_percent), buffer);
+        - lvgl.label.update:
+            id: label_info_ldr_percent
+            text:
+              format: "%.0f %%"
+              args: [x]
 
   # Reports the WiFi signal strength/RSSI in dB
   - platform: wifi_signal
@@ -114,10 +121,39 @@ sensor:
     entity_category: diagnostic
     on_value:
       then:
-        - lambda: |-
-            static char buffer[16];
-            snprintf(buffer, sizeof(buffer), "%.0f %%", id(wifi_signal_percent).state);
-            lv_label_set_text(id(label_wifi_signal_percent), buffer);
+        - lvgl.label.update:
+            id: label_info_wifi_signal_percent
+            text:
+              format: "%.0f %%"
+              args: [x]
+
+  # Thermostat arc
+  - platform: lvgl
+    id: lvgl_arc_thermostat_temp
+    widget: arc_thermostat_temp
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: label_thermostat_temp
+            text:
+              format: "%.0f °C"
+              args: [x]
+    #     - homeassistant.action:
+    #         action: climate.set_temperature
+    #         data:
+    #           temperature: !lambda return x;
+    #           entity_id: climate.room_thermostat
+
+text_sensor:
+  - platform: uptime
+    id: uptime_text
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: label_info_uptime
+            text: !lambda return id(uptime_text).state;
 
 ###############################################################################
 # Hardware setup
@@ -200,30 +236,49 @@ touchscreen:
     mirror_x: true
 
 ###############################################################################
-# LVGL UI
+# Colors
+###############################################################################
+
+color:
+  - id: state_climate_heat
+    hex: ff6f22
+
+###############################################################################
+# Fonts
 ###############################################################################
 
 font:
   - file: fonts/Orbitron-Regular.ttf
-    id: orbitron_12
-    size: 12
+    id: orbitron_14
+    size: 14
     bpp: 2
     glyphs: "!\"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü"
+    extras:
+      - file: fonts/materialdesignicons-webfont.ttf
+        glyphs:
+          - "\U000F0140" # mdi-chevron-down
+          - "\U000F050F" # mdi-thermometer
   - file: fonts/Orbitron-Regular.ttf
     id: orbitron_20
     size: 20
     bpp: 2
     glyphs: "!\"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü"
   - file: fonts/materialdesignicons-webfont.ttf
-    id: icons
+    id: icons_32
     size: 32
     bpp: 4
     glyphs:
+      - "\U000F0238" # mdi-fire
       - "\U000F02FC" # mdi-information
       - "\U000F050F" # mdi-thermometer
-      - "\U000F05A9" # mdi-wifi
+      - "\U000F0425" # mdi-power
       - "\U000F11EC" # mdi-plus-thick
       - "\U000F1639" # mdi-minus-thick
+      - "\U000F05A9" # mdi-wifi
+
+###############################################################################
+# LVGL UI
+###############################################################################
 
 lvgl:
   displays:
@@ -232,98 +287,152 @@ lvgl:
     - spi_touchscreen
   buffer_size: 25%
   disp_bg_color: black
-  default_font: orbitron_12
+  default_font: orbitron_14
 
   pages:
     - id: thermostat_page
-      bg_color: black
+      styles: page_style
       widgets:
         - container:
             align: TOP_MID
             width: 100%
             height: 280
+            scrollable: false
             layout:
               type: FLEX
               flex_flow: COLUMN
               flex_align_cross: CENTER
-              # flex_align_track: CENTER
-              pad_row: 8
             widgets:
               - label:
-                  text: Thermostat
+                  text: Heating
                   text_font: orbitron_20
               - container:
                   align: CENTER
                   width: 100%
-                  height: 20
-                  layout:
-                    type: FLEX
-                    flex_flow: ROW
-                    flex_align_main: SPACE_EVENLY
-                  widgets:
-                    - label:
-                        text: 'Current:'
-                    - label:
-                        id: label_thermostat_current_temp
-                        text: ''
-                        align: RIGHT_MID
-              - container:
-                  align: TOP_MID
-                  width: 100%
-                  height: 130
+                  height: 120
+                  scrollable: false
                   widgets:
                     - arc:
                         id: arc_thermostat_temp
                         align: CENTER
+                        y: 16
+                        height: 150
+                        pad_top: 6
+                        pad_right: 6
+                        pad_left: 6
                         adjustable: true
                         min_value: $thermostat_min
                         max_value: $thermostat_max
-                        width: 130
-                        height: 130
-                        # on_value:
-                        #   then:
-                        #     - homeassistant.action:
-                        #         action: climate.set_temperature
-                        #         data:
-                        #           temperature: !lambda return x;
-                        #           entity_id: climate.room_thermostat
+                    - label:
+                        id: label_thermostat_hvac_action
+                        align: CENTER
+                        y: -24
+                        text: 'Idle'
                     - label:
                         id: label_thermostat_temp
                         align: CENTER
-                        y: -5
-                        text: 21 °C
+                        y: -2
                         text_font: orbitron_20
+                        text: '21 °C'
+                    - label:
+                        align: CENTER
+                        x: -30
+                        y: 22
+                        text: "\U000F050F"
+                    - label:
+                        id: label_thermostat_current_temp
+                        align: CENTER
+                        x: 8
+                        y: 20
+                        text: ' '
+                    - container:
+                        align: CENTER
+                        width: 100%
+                        height: SIZE_CONTENT
+                        pad_all: 0
+                        y: 10
+                        layout:
+                          type: FLEX
+                          flex_flow: ROW
+                          flex_align_main: SPACE_BETWEEN
+                        widgets:
+                          - button:
+                              styles: arc_button_style
+                              # on_click:
+                              #   - lvgl.spinbox.decrement: spinbox_thermostat_temp
+                              widgets:
+                                - label:
+                                    text: "\U000F1639"
+                                    text_font: icons_32
+                          - button:
+                              styles: arc_button_style
+                              # on_click:
+                              #   - lvgl.spinbox.increment: spinbox_thermostat_temp
+                              widgets:
+                                - label:
+                                    text: "\U000F11EC"
+                                    text_font: icons_32
               - container:
                   align: CENTER
                   width: 100%
-                  height: 50
+                  height: SIZE_CONTENT
+                  pad_top: 4
+                  pad_bottom: 14
                   layout:
                     type: FLEX
                     flex_flow: ROW
                     flex_align_main: SPACE_EVENLY
                   widgets:
                     - button:
-                        # on_click:
-                        #   - lvgl.spinbox.decrement: spinbox_thermostat_temp
+                        styles: thermostat_button_style
                         widgets:
                           - label:
-                              text: "\U000F1639"
-                              text_font: icons
+                              text: "\U000F0425"
+                              text_font: icons_32
                     - button:
-                        # on_click:
-                        #   - lvgl.spinbox.increment: spinbox_thermostat_temp
+                        styles: thermostat_button_style
+                        state:
+                          checked: true
+                        checked:
+                          bg_color: state_climate_heat
+                          bg_grad_dir: NONE
+                          border_color: state_climate_heat
                         widgets:
                           - label:
-                              text: "\U000F11EC"
-                              text_font: icons
+                              text: "\U000F0238"
+                              text_font: icons_32
+              - container:
+                  align: CENTER
+                  width: 100%
+                  height: SIZE_CONTENT
+                  layout:
+                    type: FLEX
+                    flex_flow: ROW
+                    flex_align_main: SPACE_EVENLY
+                    flex_align_cross: CENTER
+                  widgets:
+                    - label:
+                        text: Preset
+                    - dropdown:
+                        id: dropdown_thermostat_presets
+                        pad_left: 16
+                        pad_right: 16
+                        dir: TOP
+                        symbol: "\U000F0140" # chevron-down
+                        options:
+                          - None
+                          - Away
+                          - Comfort
+                        selected_index: 0
 
     - id: wifi_page
-      bg_color: black
+      styles: page_style
       widgets:
         - container:
             align: TOP_MID
             width: 240
             height: 280
+            scrollable: false
             layout:
               type: flex
               flex_flow: column
@@ -331,8 +440,11 @@ lvgl:
               flex_align_track: center
               pad_row: 6
             widgets:
+              - label:
+                  text: Wi-Fi
+                  text_font: orbitron_20
               - qrcode:
-                  size: 200
+                  size: 170
                   light_color: white
                   dark_color: black
                   text: 'WIFI:T:WPA;S:$wifi_ssid;P:$wifi_pwd;'
@@ -344,56 +456,75 @@ lvgl:
                   text_font: orbitron_20
 
     - id: info_page
-      bg_color: black
+      styles: page_style
       widgets:
         - container:
             align: TOP_MID
             width: 240
             height: 280
+            scrollable: false
             layout:
               type: grid
-              grid_rows: [fr(1), fr(1), fr(1), fr(1)]
+              grid_rows: [CONTENT, fr(1), fr(1), fr(1), fr(1), fr(1)]
               grid_columns: [fr(1), fr(1)]
               pad_row: 16
             widgets:
               - label:
-                  text: Wifi signal strength
+                  text: Info
+                  text_font: orbitron_20
+                  text_align: CENTER
+                  width: 100%
                   grid_cell_row_pos: 0
                   grid_cell_column_pos: 0
+                  grid_cell_column_span: 2
               - label:
-                  id: label_wifi_signal_percent
-                  text: ''
-                  grid_cell_row_pos: 0
+                  text: Uptime
+                  grid_cell_row_pos: 1
+                  grid_cell_column_pos: 0
+              - label:
+                  id: label_info_uptime
+                  text: ' '
+                  grid_cell_row_pos: 1
+                  grid_cell_column_pos: 1
+                  grid_cell_x_align: END
+              - label:
+                  text: Wifi signal strength
+                  grid_cell_row_pos: 2
+                  grid_cell_column_pos: 0
+              - label:
+                  id: label_info_wifi_signal_percent
+                  text: ' '
+                  grid_cell_row_pos: 2
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
               - label:
                   text: LDR
-                  grid_cell_row_pos: 1
+                  grid_cell_row_pos: 3
                   grid_cell_column_pos: 0
               - label:
-                  id: label_ldr_percent
-                  text: ''
-                  grid_cell_row_pos: 1
+                  id: label_info_ldr_percent
+                  text: ' '
+                  grid_cell_row_pos: 3
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
               - label:
                   text: Temperature
-                  grid_cell_row_pos: 2
+                  grid_cell_row_pos: 4
                   grid_cell_column_pos: 0
               - label:
-                  id: label_temp
-                  text: ''
-                  grid_cell_row_pos: 2
+                  id: label_info_current_temp
+                  text: ' '
+                  grid_cell_row_pos: 4
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
               - label:
                   text: Humidity
-                  grid_cell_row_pos: 3
+                  grid_cell_row_pos: 5
                   grid_cell_column_pos: 0
               - label:
-                  id: label_humid
-                  text: ''
-                  grid_cell_row_pos: 3
+                  id: label_info_humidity
+                  text: ' '
+                  grid_cell_row_pos: 5
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
 
@@ -485,9 +616,23 @@ lvgl:
       border_color: 0xcccccc
       border_width: 1
       checked:
+        text_color: white
         bg_color: 0x494949
         bg_grad_color: 0x787878
         border_color: white
+      pressed:
+        text_color: white
+        bg_color: 0x676767
+        bg_grad_color: 0x989898
+        border_color: white
+    dropdown:
+      text_color: white
+      bg_color: 0x131313
+      bg_grad_color: 0x212121
+      bg_grad_dir: VER
+      bg_opa: COVER
+      border_color: 0xcccccc
+      border_width: 1
       pressed:
         bg_color: 0x676767
         bg_grad_color: 0x989898
@@ -496,4 +641,18 @@ lvgl:
   style_definitions:
     - id: nav_button_style
       height: 48
-      text_font: icons
+      text_font: icons_32
+    - id: arc_button_style
+      pad_top: 4
+      pad_right: 6
+      pad_bottom: 4
+      pad_left: 6
+      radius: 36
+    - id: thermostat_button_style
+      pad_top: 8
+      pad_right: 12
+      pad_bottom: 8
+      pad_left: 12
+    - id: page_style
+      bg_color: black
+      scrollbar_mode: "OFF"
