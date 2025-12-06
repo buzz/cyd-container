@@ -1,0 +1,24 @@
+esphome:
+  name: $device_name
+  friendly_name: $friendly_name
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: $log_level
+
+ota:
+  platform: esphome
+  password: !secret ota_pwd
+
+wifi:
+  ssid: $wifi_ssid
+  password: $wifi_pwd
+
+# Home Assistant API
+api:
+  encryption:
+    key: !secret api_key

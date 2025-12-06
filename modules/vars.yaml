@@ -1,0 +1,9 @@
+substitutions:
+  device_name: cyd-container
+  friendly_name: CYD Container
+  wifi_ssid: !secret wifi_ssid
+  wifi_pwd: !secret wifi_pwd
+  thermostat_min: 5
+  thermostat_max: 25
+  log_level: INFO
+  # log_level: DEBUG

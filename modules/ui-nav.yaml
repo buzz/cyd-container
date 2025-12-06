@@ -1,0 +1,77 @@
+lvgl:
+  top_layer:
+    widgets:
+      - container:
+          align: BOTTOM_MID
+          height: 48
+          width: 100%
+          layout:
+            type: flex
+            flex_flow: row
+            flex_align_main: SPACE_EVENLY
+          widgets:
+            - button:
+                id: btn_thermostat
+                styles: nav_button_style
+                state:
+                  checked: true
+                widgets:
+                  - label:
+                      text: "\U000F050F"
+                on_press:
+                  then:
+                    - lvgl.page.show: thermostat_page
+                    - lvgl.widget.update:
+                        id: btn_thermostat
+                        state:
+                          checked: true
+                    - lvgl.widget.update:
+                        id: btn_wifi
+                        state:
+                          checked: false
+                    - lvgl.widget.update:
+                        id: btn_info
+                        state:
+                          checked: false
+            - button:
+                id: btn_wifi
+                styles: nav_button_style
+                widgets:
+                  - label:
+                      text: "\U000F05A9"
+                on_press:
+                  then:
+                    - lvgl.page.show: wifi_page
+                    - lvgl.widget.update:
+                        id: btn_thermostat
+                        state:
+                          checked: false
+                    - lvgl.widget.update:
+                        id: btn_wifi
+                        state:
+                          checked: true
+                    - lvgl.widget.update:
+                        id: btn_info
+                        state:
+                          checked: false
+            - button:
+                id: btn_info
+                styles: nav_button_style
+                widgets:
+                  - label:
+                      text: "\U000F02FC"
+                on_press:
+                  then:
+                    - lvgl.page.show: info_page
+                    - lvgl.widget.update:
+                        id: btn_thermostat
+                        state:
+                          checked: false
+                    - lvgl.widget.update:
+                        id: btn_wifi
+                        state:
+                          checked: false
+                    - lvgl.widget.update:
+                        id: btn_info
+                        state:
+                          checked: true

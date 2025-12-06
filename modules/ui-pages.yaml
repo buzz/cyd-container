@@ -1,0 +1,239 @@
+lvgl:
+  pages:
+    - id: thermostat_page
+      styles: page_style
+      widgets:
+        - container:
+            align: TOP_MID
+            width: 100%
+            height: 280
+            scrollable: false
+            layout:
+              type: FLEX
+              flex_flow: COLUMN
+              flex_align_cross: CENTER
+            widgets:
+              - label:
+                  text: Heating
+                  text_font: orbitron_20
+              - container:
+                  align: CENTER
+                  width: 100%
+                  height: 120
+                  scrollable: false
+                  widgets:
+                    - arc:
+                        id: arc_thermostat_temp
+                        align: CENTER
+                        y: 16
+                        height: 150
+                        pad_top: 6
+                        pad_right: 6
+                        pad_left: 6
+                        adjustable: true
+                        min_value: $thermostat_min
+                        max_value: $thermostat_max
+                    - label:
+                        id: label_thermostat_hvac_action
+                        align: CENTER
+                        y: -24
+                        text: "Idle"
+                    - label:
+                        id: label_thermostat_temp
+                        align: CENTER
+                        y: -2
+                        text_font: orbitron_20
+                        text: "21 °C"
+                    - label:
+                        align: CENTER
+                        x: -30
+                        y: 22
+                        text: "\U000F050F"
+                    - label:
+                        id: label_thermostat_current_temp
+                        align: CENTER
+                        x: 8
+                        y: 20
+                        text: " "
+                    - container:
+                        align: CENTER
+                        width: 100%
+                        height: SIZE_CONTENT
+                        pad_all: 0
+                        y: 10
+                        layout:
+                          type: FLEX
+                          flex_flow: ROW
+                          flex_align_main: SPACE_BETWEEN
+                        widgets:
+                          - button:
+                              styles: arc_button_style
+                              # on_click:
+                              #   - lvgl.spinbox.decrement: spinbox_thermostat_temp
+                              widgets:
+                                - label:
+                                    text: "\U000F1639"
+                                    text_font: icons_32
+                          - button:
+                              styles: arc_button_style
+                              # on_click:
+                              #   - lvgl.spinbox.increment: spinbox_thermostat_temp
+                              widgets:
+                                - label:
+                                    text: "\U000F11EC"
+                                    text_font: icons_32
+              - container:
+                  align: CENTER
+                  width: 100%
+                  height: SIZE_CONTENT
+                  pad_top: 4
+                  pad_bottom: 14
+                  layout:
+                    type: FLEX
+                    flex_flow: ROW
+                    flex_align_main: SPACE_EVENLY
+                  widgets:
+                    - button:
+                        styles: thermostat_button_style
+                        widgets:
+                          - label:
+                              text: "\U000F0425"
+                              text_font: icons_32
+                    - button:
+                        styles: thermostat_button_style
+                        state:
+                          checked: true
+                        checked:
+                          bg_color: state_climate_heat
+                          bg_grad_dir: NONE
+                          border_color: state_climate_heat
+                        widgets:
+                          - label:
+                              text: "\U000F0238"
+                              text_font: icons_32
+              - container:
+                  align: CENTER
+                  width: 100%
+                  height: SIZE_CONTENT
+                  layout:
+                    type: FLEX
+                    flex_flow: ROW
+                    flex_align_main: SPACE_EVENLY
+                    flex_align_cross: CENTER
+                  widgets:
+                    - label:
+                        text: Preset
+                    - dropdown:
+                        id: dropdown_thermostat_presets
+                        pad_left: 16
+                        pad_right: 16
+                        dir: TOP
+                        symbol: "\U000F0140" # chevron-down
+                        options:
+                          - None
+                          - Away
+                          - Comfort
+                        selected_index: 0
+
+    - id: wifi_page
+      styles: page_style
+      widgets:
+        - container:
+            align: TOP_MID
+            width: 240
+            height: 280
+            scrollable: false
+            layout:
+              type: flex
+              flex_flow: column
+              flex_align_cross: stretch
+              flex_align_track: center
+              pad_row: 6
+            widgets:
+              - label:
+                  text: Wi-Fi
+                  text_font: orbitron_20
+              - qrcode:
+                  size: 170
+                  light_color: white
+                  dark_color: black
+                  text: "WIFI:T:WPA;S:$wifi_ssid;P:$wifi_pwd;"
+              - label:
+                  text: $wifi_ssid
+                  text_font: orbitron_20
+              - label:
+                  text: $wifi_pwd
+                  text_font: orbitron_20
+
+    - id: info_page
+      styles: page_style
+      widgets:
+        - container:
+            align: TOP_MID
+            width: 240
+            height: 280
+            scrollable: false
+            layout:
+              type: grid
+              grid_rows: [CONTENT, fr(1), fr(1), fr(1), fr(1), fr(1)]
+              grid_columns: [fr(1), fr(1)]
+              pad_row: 16
+            widgets:
+              - label:
+                  text: Info
+                  text_font: orbitron_20
+                  text_align: CENTER
+                  width: 100%
+                  grid_cell_row_pos: 0
+                  grid_cell_column_pos: 0
+                  grid_cell_column_span: 2
+              - label:
+                  text: Uptime
+                  grid_cell_row_pos: 1
+                  grid_cell_column_pos: 0
+              - label:
+                  id: label_info_uptime
+                  text: " "
+                  grid_cell_row_pos: 1
+                  grid_cell_column_pos: 1
+                  grid_cell_x_align: END
+              - label:
+                  text: Wifi signal strength
+                  grid_cell_row_pos: 2
+                  grid_cell_column_pos: 0
+              - label:
+                  id: label_info_wifi_signal_percent
+                  text: " "
+                  grid_cell_row_pos: 2
+                  grid_cell_column_pos: 1
+                  grid_cell_x_align: END
+              # - label:
+              #     text: LDR
+              #     grid_cell_row_pos: 3
+              #     grid_cell_column_pos: 0
+              # - label:
+              #     id: label_info_ldr_percent
+              #     text: " "
+              #     grid_cell_row_pos: 3
+              #     grid_cell_column_pos: 1
+              #     grid_cell_x_align: END
+              - label:
+                  text: Temperature
+                  grid_cell_row_pos: 3
+                  grid_cell_column_pos: 0
+              - label:
+                  id: label_info_current_temp
+                  text: " "
+                  grid_cell_row_pos: 3
+                  grid_cell_column_pos: 1
+                  grid_cell_x_align: END
+              - label:
+                  text: Humidity
+                  grid_cell_row_pos: 4
+                  grid_cell_column_pos: 0
+              - label:
+                  id: label_info_humidity
+                  text: " "
+                  grid_cell_row_pos: 4
+                  grid_cell_column_pos: 1
+                  grid_cell_x_align: END

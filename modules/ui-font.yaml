@@ -1,0 +1,28 @@
+font:
+  - file: fonts/Orbitron-Regular.ttf
+    id: orbitron_14
+    size: 14
+    bpp: 2
+    glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü'
+    extras:
+      - file: fonts/materialdesignicons-webfont.ttf
+        glyphs:
+          - "\U000F0140" # mdi-chevron-down
+          - "\U000F050F" # mdi-thermometer
+  - file: fonts/Orbitron-Regular.ttf
+    id: orbitron_20
+    size: 20
+    bpp: 2
+    glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü'
+  - file: fonts/materialdesignicons-webfont.ttf
+    id: icons_32
+    size: 32
+    bpp: 4
+    glyphs:
+      - "\U000F0238" # mdi-fire
+      - "\U000F02FC" # mdi-information
+      - "\U000F050F" # mdi-thermometer
+      - "\U000F0425" # mdi-power
+      - "\U000F11EC" # mdi-plus-thick
+      - "\U000F1639" # mdi-minus-thick
+      - "\U000F05A9" # mdi-wifi

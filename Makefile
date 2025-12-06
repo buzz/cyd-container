@@ -1,9 +1,10 @@
 CONFIG = cyd_container.yaml
+MODULES = $(wildcard modules/*.yaml)
 SERIAL_PORT = /dev/ttyUSB0
 OTA_HOST = cyd-container
 FIRMWARE = .esphome/build/cyd-container/.pioenvs/cyd-container/firmware.ota.bin
 
-$(FIRMWARE): $(CONFIG)
+$(FIRMWARE): $(CONFIG) $(MODULES)
 	esphome compile $(CONFIG)
 
 .PHONY: flash-usb

@@ -1,0 +1,60 @@
+lvgl:
+  displays:
+    - spi_display
+  touchscreens:
+    - spi_touchscreen
+  buffer_size: 25%
+  disp_bg_color: black
+  default_font: orbitron_14
+
+  theme:
+    label:
+      text_color: white
+    button:
+      bg_color: 0x131313
+      bg_grad_color: 0x212121
+      bg_grad_dir: VER
+      bg_opa: COVER
+      border_color: 0xcccccc
+      border_width: 1
+      checked:
+        text_color: white
+        bg_color: 0x494949
+        bg_grad_color: 0x787878
+        border_color: white
+      pressed:
+        text_color: white
+        bg_color: 0x676767
+        bg_grad_color: 0x989898
+        border_color: white
+    dropdown:
+      text_color: white
+      bg_color: 0x131313
+      bg_grad_color: 0x212121
+      bg_grad_dir: VER
+      bg_opa: COVER
+      border_color: 0xcccccc
+      border_width: 1
+      pressed:
+        bg_color: 0x676767
+        bg_grad_color: 0x989898
+        border_color: white
+
+  style_definitions:
+    - id: nav_button_style
+      height: 48
+      text_font: icons_32
+    - id: arc_button_style
+      pad_top: 4
+      pad_right: 6
+      pad_bottom: 4
+      pad_left: 6
+      radius: 36
+    - id: thermostat_button_style
+      pad_top: 8
+      pad_right: 12
+      pad_bottom: 8
+      pad_left: 12
+    - id: page_style
+      bg_color: black
+      scrollbar_mode: "OFF"

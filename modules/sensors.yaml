@@ -1,0 +1,83 @@
+sensor:
+  - platform: homeassistant
+    id: thermostat_current_temperature
+    entity_id: sensor.thermostat_current_temperature
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: label_info_current_temp
+            text:
+              format: "%.1f °C"
+              args: [x]
+        - lvgl.label.update:
+            id: label_thermostat_current_temp
+            text:
+              format: "%.1f °C"
+              args: [x]
+  - platform: homeassistant
+    id: thermostat_target_temperature
+    entity_id: sensor.thermostat_current_temperature
+    internal: true
+
+  # Reports the WiFi signal strength/RSSI in dB
+  - platform: wifi_signal
+    id: wifi_signal_db
+    name: WiFi Signal dB
+    update_interval: 60s
+    entity_category: diagnostic
+
+  # Reports the WiFi signal strength in %
+  - platform: copy
+    id: wifi_signal_percent
+    name: WiFi Signal Percent
+    source_id: wifi_signal_db
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: Signal %
+    entity_category: diagnostic
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: label_info_wifi_signal_percent
+            text:
+              format: "%.0f %%"
+              args: [x]
+
+  # Thermostat arc
+  - platform: lvgl
+    id: lvgl_arc_thermostat_temp
+    widget: arc_thermostat_temp
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: label_thermostat_temp
+            text:
+              format: "%.0f °C"
+              args: [x]
+    #     - homeassistant.action:
+    #         action: climate.set_temperature
+    #         data:
+    #           temperature: !lambda return x;
+    #           entity_id: climate.room_thermostat
+
+text_sensor:
+  - platform: uptime
+    id: uptime_text
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: label_info_uptime
+            text: !lambda return id(uptime_text).state;
+
+  - platform: homeassistant
+    id: thermostat_hvac_action
+    entity_id: sensor.thermostat_hvac_action
+    internal: true
+
+  - platform: homeassistant
+    id: thermostat_preset_mode
+    entity_id: sensor.thermostat_preset_mode
+    internal: true
