@@ -3,7 +3,7 @@ substitutions:
   friendly_name: CYD Container
   wifi_ssid: !secret wifi_ssid
   wifi_pwd: !secret wifi_pwd
-  thermostat_min: 0
+  thermostat_min: 5
   thermostat_max: 25
 
 esphome:
@@ -16,8 +16,8 @@ esp32:
     type: esp-idf
 
 logger:
-  level: INFO
-  # level: DEBUG
+  # level: INFO
+  level: DEBUG
 
 ota:
   platform: esphome
@@ -47,6 +47,26 @@ i2c:
 ###############################################################################
 
 sensor:
+  # - platform: homeassistant
+  #   id: thermostat_current_temperature
+  #   entity_id: sensor.thermostat_current_temperature
+  #   internal: true
+  #   on_value:
+  #     then:
+  #       - lvgl.label.update:
+  #           id: label_info_current_temp
+  #           text:
+  #             format: "%.1f °C"
+  #             args: [x]
+  #       - lvgl.label.update:
+  #           id: label_thermostat_current_temp
+  #           text:
+  #             format: "%.1f °C"
+  #             args: [x]
+  # - platform: homeassistant
+  #   id: thermostat_target_temperature
+  #   entity_id: sensor.thermostat_current_temperature
+  #   internal: true
 
   # DHT20
   - platform: aht10
@@ -80,28 +100,28 @@ sensor:
                 args: [x]
 
   # Set up sensor for LDR (light meter)
-  - platform: adc
-    id: board_ldr
-    name: board_ldr
-    pin: GPIO34
-    update_interval: 10s
-    entity_category: diagnostic
+  # - platform: adc
+  #   id: board_ldr
+  #   name: board_ldr
+  #   pin: GPIO34
+  #   update_interval: 10s
+  #   entity_category: diagnostic
 
   # Reports the light brightness in %
-  - platform: copy
-    id: ldr_percent
-    name: Light Percent
-    source_id: board_ldr
-    filters:
-      - lambda: return min(max((100 - (((x - 0.075) / (0.49 - 0.075)) * 100)), 0.0), 100.0);
-    unit_of_measurement: Light %
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: label_info_ldr_percent
-            text:
-              format: "%.0f %%"
-              args: [x]
+  # - platform: copy
+  #   id: ldr_percent
+  #   name: Light Percent
+  #   source_id: board_ldr
+  #   filters:
+  #     - lambda: return min(max((100 - (((x - 0.075) / (0.49 - 0.075)) * 100)), 0.0), 100.0);
+  #   unit_of_measurement: Light %
+  #   on_value:
+  #     then:
+  #       - lvgl.label.update:
+  #           id: label_info_ldr_percent
+  #           text:
+  #             format: "%.0f %%"
+  #             args: [x]
 
   # Reports the WiFi signal strength/RSSI in dB
   - platform: wifi_signal
@@ -154,6 +174,16 @@ text_sensor:
         - lvgl.label.update:
             id: label_info_uptime
             text: !lambda return id(uptime_text).state;
+
+  - platform: homeassistant
+    id: thermostat_hvac_action
+    entity_id: sensor.thermostat_hvac_action
+    internal: true
+
+  - platform: homeassistant
+    id: thermostat_preset_mode
+    entity_id: sensor.thermostat_preset_mode
+    internal: true
 
 ###############################################################################
 # Hardware setup
@@ -252,7 +282,7 @@ font:
     id: orbitron_14
     size: 14
     bpp: 2
-    glyphs: "!\"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü"
+    glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü'
     extras:
       - file: fonts/materialdesignicons-webfont.ttf
         glyphs:
@@ -262,7 +292,7 @@ font:
     id: orbitron_20
     size: 20
     bpp: 2
-    glyphs: "!\"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü"
+    glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü'
   - file: fonts/materialdesignicons-webfont.ttf
     id: icons_32
     size: 32
@@ -327,13 +357,13 @@ lvgl:
                         id: label_thermostat_hvac_action
                         align: CENTER
                         y: -24
-                        text: 'Idle'
+                        text: "Idle"
                     - label:
                         id: label_thermostat_temp
                         align: CENTER
                         y: -2
                         text_font: orbitron_20
-                        text: '21 °C'
+                        text: "21 °C"
                     - label:
                         align: CENTER
                         x: -30
@@ -344,7 +374,7 @@ lvgl:
                         align: CENTER
                         x: 8
                         y: 20
-                        text: ' '
+                        text: " "
                     - container:
                         align: CENTER
                         width: 100%
@@ -447,7 +477,7 @@ lvgl:
                   size: 170
                   light_color: white
                   dark_color: black
-                  text: 'WIFI:T:WPA;S:$wifi_ssid;P:$wifi_pwd;'
+                  text: "WIFI:T:WPA;S:$wifi_ssid;P:$wifi_pwd;"
               - label:
                   text: $wifi_ssid
                   text_font: orbitron_20
@@ -483,7 +513,7 @@ lvgl:
                   grid_cell_column_pos: 0
               - label:
                   id: label_info_uptime
-                  text: ' '
+                  text: " "
                   grid_cell_row_pos: 1
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
@@ -493,38 +523,38 @@ lvgl:
                   grid_cell_column_pos: 0
               - label:
                   id: label_info_wifi_signal_percent
-                  text: ' '
+                  text: " "
                   grid_cell_row_pos: 2
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
-              - label:
-                  text: LDR
-                  grid_cell_row_pos: 3
-                  grid_cell_column_pos: 0
-              - label:
-                  id: label_info_ldr_percent
-                  text: ' '
-                  grid_cell_row_pos: 3
-                  grid_cell_column_pos: 1
-                  grid_cell_x_align: END
+              # - label:
+              #     text: LDR
+              #     grid_cell_row_pos: 3
+              #     grid_cell_column_pos: 0
+              # - label:
+              #     id: label_info_ldr_percent
+              #     text: " "
+              #     grid_cell_row_pos: 3
+              #     grid_cell_column_pos: 1
+              #     grid_cell_x_align: END
               - label:
                   text: Temperature
-                  grid_cell_row_pos: 4
+                  grid_cell_row_pos: 3
                   grid_cell_column_pos: 0
               - label:
                   id: label_info_current_temp
-                  text: ' '
-                  grid_cell_row_pos: 4
+                  text: " "
+                  grid_cell_row_pos: 3
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
               - label:
                   text: Humidity
-                  grid_cell_row_pos: 5
+                  grid_cell_row_pos: 4
                   grid_cell_column_pos: 0
               - label:
                   id: label_info_humidity
-                  text: ' '
-                  grid_cell_row_pos: 5
+                  text: " "
+                  grid_cell_row_pos: 4
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
 
