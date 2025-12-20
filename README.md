@@ -8,3 +8,22 @@ Extended IO/GPIO pins
 06.12.25
   - The ESP32’s original SDA pin (GPIO27) is internally damaged and can no longer drive the I²C data line high.
     -> No temperature sensor... :(
+
+## Home Assistant Config
+
+Export thermostat attributes as sensor values.
+
+```yaml
+- template:
+  - sensor:
+      - name: "Thermostat Current Temperature"
+        state: "{{ state_attr('climate.thermostat', 'current_temperature') }}"
+        unit_of_measurement: "°C"
+      - name: "Thermostat Target Temperature"
+        state: "{{ state_attr('climate.thermostat', 'temperature') }}"
+        unit_of_measurement: "°C"
+      - name: "Thermostat Preset Mode"
+        state: "{{ state_attr('climate.thermostat', 'preset_mode') }}"
+      - name: "Thermostat HVAC Action"
+        state: "{{ state_attr('climate.thermostat', 'hvac_action') }}"
+```
