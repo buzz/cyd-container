@@ -14,7 +14,7 @@ lvgl:
               flex_align_cross: CENTER
             widgets:
               - label:
-                  text: Heating
+                  text: Thermostat
                   text_font: orbitron_20
               - container:
                   align: CENTER
@@ -33,17 +33,37 @@ lvgl:
                         adjustable: true
                         min_value: $thermostat_min
                         max_value: $thermostat_max
+                        value: !lambda return id(thermostat_target_temperature).state;
+                        # knob:
+                        #   bg_color: !lambda |-
+                        #     auto current_state = id(thermostat_hvac_action).state;
+                        #     ESP_LOGI("knob_diag", "State value: '%s'", current_state.c_str());
+                        #     ESP_LOGI("knob_diag", "State length: %d", current_state.length());
+                        #     if (strcmp(id(thermostat_hvac_action).state.c_str(), "heating") == 0) {
+                        #       ESP_LOGI("knob_diag", "YES");
+                        #       return id(color_state_climate_heat);
+                        #     } else {
+                        #       ESP_LOGI("knob_diag", "NO");
+                        #       return Color(255, 255, 255);
+                        #     }
+                        on_change:
+                          then:
+                            - homeassistant.action:
+                                action: climate.set_temperature
+                                data:
+                                  temperature: !lambda return x;
+                                  entity_id: climate.thermostat
                     - label:
                         id: label_thermostat_hvac_action
                         align: CENTER
                         y: -24
-                        text: "Idle"
+                        text: !lambda return id(thermostat_hvac_action).state;
                     - label:
-                        id: label_thermostat_temp
+                        id: label_thermostat_target_temp
                         align: CENTER
                         y: -2
                         text_font: orbitron_20
-                        text: "21 °C"
+                        text: !lambda return id(thermostat_target_temperature_formatted).state;
                     - label:
                         align: CENTER
                         x: -30
@@ -54,7 +74,7 @@ lvgl:
                         align: CENTER
                         x: 8
                         y: 20
-                        text: " "
+                        text: !lambda return id(thermostat_current_temperature_formatted).state;
                     - container:
                         align: CENTER
                         width: 100%
@@ -68,16 +88,26 @@ lvgl:
                         widgets:
                           - button:
                               styles: arc_button_style
-                              # on_click:
-                              #   - lvgl.spinbox.decrement: spinbox_thermostat_temp
+                              on_click:
+                                then:
+                                  - homeassistant.action:
+                                      action: climate.set_temperature
+                                      data:
+                                        temperature: !lambda return id(thermostat_target_temperature).state - 0.5;
+                                        entity_id: climate.thermostat
                               widgets:
                                 - label:
                                     text: "\U000F1639"
                                     text_font: icons_32
                           - button:
                               styles: arc_button_style
-                              # on_click:
-                              #   - lvgl.spinbox.increment: spinbox_thermostat_temp
+                              on_click:
+                                then:
+                                  - homeassistant.action:
+                                      action: climate.set_temperature
+                                      data:
+                                        temperature: !lambda return id(thermostat_target_temperature).state + 0.5;
+                                        entity_id: climate.thermostat
                               widgets:
                                 - label:
                                     text: "\U000F11EC"
@@ -104,9 +134,9 @@ lvgl:
                         state:
                           checked: true
                         checked:
-                          bg_color: state_climate_heat
+                          bg_color: color_state_climate_heat
                           bg_grad_dir: NONE
-                          border_color: state_climate_heat
+                          border_color: color_state_climate_heat
                         widgets:
                           - label:
                               text: "\U000F0238"
@@ -124,7 +154,7 @@ lvgl:
                     - label:
                         text: Preset
                     - dropdown:
-                        id: dropdown_thermostat_presets
+                        id: dropdown_thermostat_preset
                         pad_left: 16
                         pad_right: 16
                         dir: TOP
@@ -187,53 +217,25 @@ lvgl:
                   grid_cell_row_pos: 0
                   grid_cell_column_pos: 0
                   grid_cell_column_span: 2
+
               - label:
                   text: Uptime
                   grid_cell_row_pos: 1
                   grid_cell_column_pos: 0
               - label:
                   id: label_info_uptime
-                  text: " "
+                  text: !lambda return id(uptime_text).state;
                   grid_cell_row_pos: 1
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END
+
               - label:
-                  text: Wifi signal strength
+                  text: Wifi Signal
                   grid_cell_row_pos: 2
                   grid_cell_column_pos: 0
               - label:
                   id: label_info_wifi_signal_percent
-                  text: " "
+                  text: !lambda return id(wifi_signal_percent_formatted).state;
                   grid_cell_row_pos: 2
-                  grid_cell_column_pos: 1
-                  grid_cell_x_align: END
-              # - label:
-              #     text: LDR
-              #     grid_cell_row_pos: 3
-              #     grid_cell_column_pos: 0
-              # - label:
-              #     id: label_info_ldr_percent
-              #     text: " "
-              #     grid_cell_row_pos: 3
-              #     grid_cell_column_pos: 1
-              #     grid_cell_x_align: END
-              - label:
-                  text: Temperature
-                  grid_cell_row_pos: 3
-                  grid_cell_column_pos: 0
-              - label:
-                  id: label_info_current_temp
-                  text: " "
-                  grid_cell_row_pos: 3
-                  grid_cell_column_pos: 1
-                  grid_cell_x_align: END
-              - label:
-                  text: Humidity
-                  grid_cell_row_pos: 4
-                  grid_cell_column_pos: 0
-              - label:
-                  id: label_info_humidity
-                  text: " "
-                  grid_cell_row_pos: 4
                   grid_cell_column_pos: 1
                   grid_cell_x_align: END

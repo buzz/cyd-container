@@ -57,8 +57,8 @@ display:
     auto_clear_enabled: true
     rotation: 0
     dimensions:
-      width: 240
-      height: 320
+      width: $screen_width
+      height: $screen_height
     lambda: |-
       auto touch = id(spi_touchscreen)->get_touch();
       if (touch) // or touch.has_value()

@@ -1,3 +1,5 @@
 color:
-  - id: state_climate_heat
+  - id: color_state_climate_heat
     hex: ff6f22
+  - id: color_info
+    hex: 039be5

@@ -1,0 +1,138 @@
+lvgl:
+  pages:
+    - id: screensaver_page
+      styles: page_style
+      width: 100%
+      height: 100%
+      scrollable: false
+      widgets:
+        - container:
+            id: cont_screensaver_timedate
+            scrollable: false
+            align: TOP_MID
+            y: !lambda return ${screen_width} / 2;
+            widgets:
+
+              # Time
+              - label:
+                  id: label_screensaver_time
+                  text: !lambda |-
+                    char buf[6];
+                    auto t = id(sntp_time).now();
+                    sprintf(buf, "%02d:%02d", t.hour, t.minute);
+                    return std::string(buf);
+                  text_font: orbitron_60
+                  align: TOP_MID
+
+              # Date
+              - label:
+                  id: label_screensaver_date
+                  text: !lambda |-
+                    char buf[11];
+                    auto t = id(sntp_time).now();
+                    sprintf(buf, "%02d.%02d.%04d", t.day_of_month, t.month, t.year);
+                    return std::string(buf);
+                  text_font: orbitron_36
+                  align: TOP_MID
+                  y: 64
+
+        # Temperature
+        - label:
+            id: label_screensaver_temperature
+            text: !lambda return id(thermostat_current_temperature_formatted).state;
+            text_font: orbitron_50
+            align: TOP_MID
+
+  on_idle:
+    - timeout: !lambda return (id(screensaver_timeout).state * 1000);
+      then:
+        - globals.set:
+            id: screensaver_active
+            value: "true"
+        - lvgl.widget.hide: navigation
+        - script.execute: screensaver_reposition
+        - lvgl.page.show: screensaver_page
+
+touchscreen:
+  on_release:
+    - if:
+        condition:
+          lambda: return id(screensaver_active);
+        then:
+          - globals.set:
+              id: screensaver_active
+              value: "false"
+          - lvgl.widget.show: navigation
+          # Restore current page
+          - if:
+              condition:
+                lambda: return id(current_page_idx) == 0;
+              then:
+                - lvgl.page.show: thermostat_page
+          - if:
+              condition:
+                lambda: return id(current_page_idx) == 1;
+              then:
+                - lvgl.page.show: wifi_page
+          - if:
+              condition:
+                lambda: return id(current_page_idx) == 2;
+              then:
+                - lvgl.page.show: info_page
+
+globals:
+  - id: screensaver_active
+    type: bool
+    initial_value: "false"
+  # Remember page
+  - id: current_page_idx
+    type: int
+    initial_value: "0"
+
+interval:
+  # Update position
+  - interval: 300sec
+    then:
+      - if:
+          condition:
+            lambda: return id(screensaver_active);
+          then:
+            script.execute: screensaver_reposition
+  # Refresh time/date labels
+  - interval: 2sec
+    then:
+      - if:
+          condition:
+            lambda: return id(screensaver_active);
+          then:
+            - lvgl.widget.refresh:
+              - label_screensaver_time
+              - label_screensaver_date
+
+script:
+  - id: screensaver_reposition
+    mode: queued
+    then:
+      - lambda: |-
+          int max_y_timedate = ${screen_height} / 2 - 86;
+          int y_timedate = random() % max_y_timedate - 15;
+
+          int max_y_temp = ${screen_height} / 2 - 52;
+          int y_temp = random() % max_y_temp + ${screen_height} / 2 - 10;
+
+          lv_obj_set_pos(id(cont_screensaver_timedate), 0, y_timedate);
+          lv_obj_set_pos(id(label_screensaver_temperature), 0, y_temp);
+
+# Make screen timeout adjustable
+number:
+  - platform: template
+    id: screensaver_timeout
+    name: Screensaver timeout
+    optimistic: true
+    unit_of_measurement: "s"
+    initial_value: 120
+    restore_value: true
+    min_value: 10
+    max_value: 600
+    step: 10
+    mode: box

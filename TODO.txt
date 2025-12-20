@@ -1,3 +1,6 @@
 - WLED control page?
 - Screensaver?
   -> show clock/date/temperature?
+- sliders
+  - screen brightness
+  - screensaver timeout

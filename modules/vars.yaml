@@ -3,7 +3,8 @@ substitutions:
   friendly_name: CYD Container
   wifi_ssid: !secret wifi_ssid
   wifi_pwd: !secret wifi_pwd
+  screen_width: 240
+  screen_height: 320
   thermostat_min: 5
   thermostat_max: 25
   log_level: INFO
-  # log_level: DEBUG

@@ -9,11 +9,31 @@ font:
         glyphs:
           - "\U000F0140" # mdi-chevron-down
           - "\U000F050F" # mdi-thermometer
+
   - file: fonts/Orbitron-Regular.ttf
     id: orbitron_20
     size: 20
     bpp: 2
     glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ abcdefghijklmnopqrstuvwxyzäöü'
+
+  - file: fonts/Orbitron-Regular.ttf
+    id: orbitron_36
+    size: 36
+    bpp: 2
+    glyphs: '.0123456789na'
+
+  - file: fonts/Orbitron-Regular.ttf
+    id: orbitron_50
+    size: 50
+    bpp: 2
+    glyphs: '.:°0123456789naC '
+
+  - file: fonts/Orbitron-Regular.ttf
+    id: orbitron_60
+    size: 60
+    bpp: 2
+    glyphs: ':0123456789na'
+
   - file: fonts/materialdesignicons-webfont.ttf
     id: icons_32
     size: 32

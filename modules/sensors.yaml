@@ -1,24 +1,44 @@
 sensor:
+  # UI
+
+  # Thermostat arc
+  # - platform: lvgl
+  #   id: lvgl_arc_thermostat_temp
+  #   widget: arc_thermostat_temp
+  #   internal: true
+  #   on_value:
+  #     then:
+  #       # - lvgl.label.update:
+  #       #     id: label_thermostat_temp
+  #       #     text:
+  #       #       format: "%.0f °C"
+  #       #       args: [x]
+  #       - homeassistant.action:
+  #           action: climate.set_temperature
+  #           data:
+  #             temperature: !lambda return x;
+  #             entity_id: climate.thermostat
+
+  # Home Assistant
+
   - platform: homeassistant
     id: thermostat_current_temperature
-    entity_id: sensor.thermostat_current_temperature
-    internal: true
+    entity_id: climate.thermostat
+    attribute: current_temperature
     on_value:
       then:
-        - lvgl.label.update:
-            id: label_info_current_temp
-            text:
-              format: "%.1f °C"
-              args: [x]
-        - lvgl.label.update:
-            id: label_thermostat_current_temp
-            text:
-              format: "%.1f °C"
-              args: [x]
+        - lambda: id(thermostat_current_temperature_formatted).update();
+
   - platform: homeassistant
     id: thermostat_target_temperature
-    entity_id: sensor.thermostat_current_temperature
-    internal: true
+    entity_id: climate.thermostat
+    attribute: temperature
+    on_value:
+      then:
+        - lvgl.widget.refresh: arc_thermostat_temp
+        - lambda: id(thermostat_target_temperature_formatted).update();
+
+  # HW
 
   # Reports the WiFi signal strength/RSSI in dB
   - platform: wifi_signal
@@ -26,58 +46,86 @@ sensor:
     name: WiFi Signal dB
     update_interval: 60s
     entity_category: diagnostic
+    unit_of_measurement: dBm
 
   # Reports the WiFi signal strength in %
   - platform: copy
     id: wifi_signal_percent
     name: WiFi Signal Percent
+    internal: true
     source_id: wifi_signal_db
     filters:
       - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
-    unit_of_measurement: Signal %
-    entity_category: diagnostic
     on_value:
       then:
-        - lvgl.label.update:
-            id: label_info_wifi_signal_percent
-            text:
-              format: "%.0f %%"
-              args: [x]
-
-  # Thermostat arc
-  - platform: lvgl
-    id: lvgl_arc_thermostat_temp
-    widget: arc_thermostat_temp
-    internal: true
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: label_thermostat_temp
-            text:
-              format: "%.0f °C"
-              args: [x]
-    #     - homeassistant.action:
-    #         action: climate.set_temperature
-    #         data:
-    #           temperature: !lambda return x;
-    #           entity_id: climate.room_thermostat
+        - lvgl.widget.refresh:
+            - label_info_wifi_signal_percent
 
 text_sensor:
+  - platform: homeassistant
+    id: thermostat_hvac_action
+    entity_id: climate.thermostat
+    attribute: hvac_action
+    on_value:
+      then:
+        - lvgl.arc.update:
+            id: arc_thermostat_temp
+            bg_color: !lambda |-
+              return strcmp(id(thermostat_hvac_action).state.c_str(), "heating") == 0
+                ? id(color_state_climate_heat)
+                : id(color_info);
+            knob:
+              bg_color: !lambda |-
+                return strcmp(id(thermostat_hvac_action).state.c_str(), "heating") == 0
+                  ? id(color_state_climate_heat)
+                  : id(color_info);
+        - lvgl.widget.refresh: label_thermostat_hvac_action
+
+  - platform: homeassistant
+    id: thermostat_preset_mode
+    entity_id: climate.thermostat
+    attribute: preset_mode
+    # TODO: update dropdown_thermostat_preset
+
+  - platform: template
+    id: thermostat_current_temperature_formatted
+    internal: true
+    lambda: |-
+      char buf[10];
+      sprintf(buf, "%.1f °C", id(thermostat_current_temperature).state);
+      return std::string(buf);
+    on_value:
+      then:
+        - lvgl.widget.refresh:
+            - label_thermostat_current_temp
+            - label_screensaver_temperature
+
+  - platform: template
+    id: thermostat_target_temperature_formatted
+    internal: true
+    lambda: |-
+      char buf[10];
+      sprintf(buf, "%.0f °C", id(thermostat_target_temperature).state);
+      return std::string(buf);
+    on_value:
+      then:
+        - lvgl.widget.refresh:
+            - label_thermostat_target_temp
+
   - platform: uptime
     id: uptime_text
     internal: true
     on_value:
       then:
-        - lvgl.label.update:
-            id: label_info_uptime
-            text: !lambda return id(uptime_text).state;
+        - lvgl.widget.refresh: label_info_uptime
 
-  - platform: homeassistant
-    id: thermostat_hvac_action
-    entity_id: sensor.thermostat_hvac_action
+  - platform: template
+    id: wifi_signal_percent_formatted
     internal: true
-
-  - platform: homeassistant
-    id: thermostat_preset_mode
-    entity_id: sensor.thermostat_preset_mode
-    internal: true
+    lambda: |-
+      char buf[5];
+      sprintf(buf, "%.0f %%", id(wifi_signal_percent).state);
+      return std::string(buf);
+    on_value:
+      then:
+        - lvgl.widget.refresh: label_info_wifi_signal_percent

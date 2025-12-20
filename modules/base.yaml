@@ -22,3 +22,13 @@ wifi:
 api:
   encryption:
     key: !secret api_key
+
+# NTP
+time:
+  - platform: sntp
+    id: sntp_time
+    servers:
+      - 0.de.pool.ntp.org
+      - 1.de.pool.ntp.org
+      - 2.de.pool.ntp.org
+    timezone: "Europe/Berlin"

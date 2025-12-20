@@ -2,6 +2,7 @@ lvgl:
   top_layer:
     widgets:
       - container:
+          id: navigation
           align: BOTTOM_MID
           height: 48
           width: 100%
@@ -14,12 +15,15 @@ lvgl:
                 id: btn_thermostat
                 styles: nav_button_style
                 state:
-                  checked: true
+                  checked: !lambda return id(current_page_idx) == 0;
                 widgets:
                   - label:
                       text: "\U000F050F"
                 on_press:
                   then:
+                    - globals.set:
+                        id: current_page_idx
+                        value: '0'
                     - lvgl.page.show: thermostat_page
                     - lvgl.widget.update:
                         id: btn_thermostat
@@ -36,11 +40,16 @@ lvgl:
             - button:
                 id: btn_wifi
                 styles: nav_button_style
+                state:
+                  checked: !lambda return id(current_page_idx) == 1;
                 widgets:
                   - label:
                       text: "\U000F05A9"
                 on_press:
                   then:
+                    - globals.set:
+                        id: current_page_idx
+                        value: '1'
                     - lvgl.page.show: wifi_page
                     - lvgl.widget.update:
                         id: btn_thermostat
@@ -57,11 +66,16 @@ lvgl:
             - button:
                 id: btn_info
                 styles: nav_button_style
+                state:
+                  checked: !lambda return id(current_page_idx) == 2;
                 widgets:
                   - label:
                       text: "\U000F02FC"
                 on_press:
                   then:
+                    - globals.set:
+                        id: current_page_idx
+                        value: '2'
                     - lvgl.page.show: info_page
                     - lvgl.widget.update:
                         id: btn_thermostat

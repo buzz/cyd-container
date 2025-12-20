@@ -5,6 +5,8 @@ packages:
   - !include modules/sensors.yaml
   - !include modules/ui-color.yaml
   - !include modules/ui-font.yaml
+  - !include modules/ui-theme.yaml
   - !include modules/ui-nav.yaml
   - !include modules/ui-pages.yaml
   - !include modules/ui-lvgl.yaml
+  - !include modules/ui-screensaver.yaml

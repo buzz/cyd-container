@@ -8,7 +8,7 @@ light:
     output: backlight_pwm
     name: Display Backlight
     id: backlight
-    restore_mode: ALWAYS_ON
+    restore_mode: RESTORE_DEFAULT_ON
 
 spi:
   - id: tft
@@ -38,8 +38,8 @@ spi:
 #     invert_colors: false
 #     color_depth: 16
 #     dimensions:
-#       width: 240
-#       height: 320
+#       width: $screen_width
+#       height: $screen_height
 
 display:
   - platform: ili9xxx
@@ -57,8 +57,8 @@ display:
     auto_clear_enabled: false
     rotation: 0
     dimensions:
-      width: 240
-      height: 320
+      width: $screen_width
+      height: $screen_height
 
 touchscreen:
   platform: xpt2046
