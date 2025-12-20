@@ -34,18 +34,6 @@ lvgl:
                         min_value: $thermostat_min
                         max_value: $thermostat_max
                         value: !lambda return id(thermostat_target_temperature).state;
-                        # knob:
-                        #   bg_color: !lambda |-
-                        #     auto current_state = id(thermostat_hvac_action).state;
-                        #     ESP_LOGI("knob_diag", "State value: '%s'", current_state.c_str());
-                        #     ESP_LOGI("knob_diag", "State length: %d", current_state.length());
-                        #     if (strcmp(id(thermostat_hvac_action).state.c_str(), "heating") == 0) {
-                        #       ESP_LOGI("knob_diag", "YES");
-                        #       return id(color_state_climate_heat);
-                        #     } else {
-                        #       ESP_LOGI("knob_diag", "NO");
-                        #       return Color(255, 255, 255);
-                        #     }
                         on_change:
                           then:
                             - homeassistant.action:
@@ -93,7 +81,7 @@ lvgl:
                                   - homeassistant.action:
                                       action: climate.set_temperature
                                       data:
-                                        temperature: !lambda return id(thermostat_target_temperature).state - 0.5;
+                                        temperature: !lambda return id(thermostat_target_temperature).state - 1.0;
                                         entity_id: climate.thermostat
                               widgets:
                                 - label:
@@ -106,7 +94,7 @@ lvgl:
                                   - homeassistant.action:
                                       action: climate.set_temperature
                                       data:
-                                        temperature: !lambda return id(thermostat_target_temperature).state + 0.5;
+                                        temperature: !lambda return id(thermostat_target_temperature).state + 1.0;
                                         entity_id: climate.thermostat
                               widgets:
                                 - label:
@@ -124,15 +112,29 @@ lvgl:
                     flex_align_main: SPACE_EVENLY
                   widgets:
                     - button:
+                        id: button_thermostat_state_off
                         styles: thermostat_button_style
+                        on_click:
+                          then:
+                            - homeassistant.action:
+                                action: climate.set_hvac_mode
+                                data:
+                                  entity_id: climate.thermostat
+                                  hvac_mode: "off"
                         widgets:
                           - label:
                               text: "\U000F0425"
                               text_font: icons_32
                     - button:
+                        id: button_thermostat_state_heat
                         styles: thermostat_button_style
-                        state:
-                          checked: true
+                        on_click:
+                          then:
+                            - homeassistant.action:
+                                action: climate.set_hvac_mode
+                                data:
+                                  entity_id: climate.thermostat
+                                  hvac_mode: heat
                         checked:
                           bg_color: color_state_climate_heat
                           bg_grad_dir: NONE
@@ -164,7 +166,16 @@ lvgl:
                           - Away
                           - Comfort
                         selected_index: 0
-
+                        on_change:
+                          then:
+                            - homeassistant.action:
+                                action: climate.set_preset_mode
+                                data:
+                                  entity_id: climate.thermostat
+                                  preset_mode: !lambda |-
+                                    if (x == 1) return "away";
+                                    else if (x == 2) return "comfort";
+                                    return "none";
     - id: wifi_page
       styles: page_style
       widgets:

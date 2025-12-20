@@ -1,24 +1,4 @@
 sensor:
-  # UI
-
-  # Thermostat arc
-  # - platform: lvgl
-  #   id: lvgl_arc_thermostat_temp
-  #   widget: arc_thermostat_temp
-  #   internal: true
-  #   on_value:
-  #     then:
-  #       # - lvgl.label.update:
-  #       #     id: label_thermostat_temp
-  #       #     text:
-  #       #       format: "%.0f °C"
-  #       #       args: [x]
-  #       - homeassistant.action:
-  #           action: climate.set_temperature
-  #           data:
-  #             temperature: !lambda return x;
-  #             entity_id: climate.thermostat
-
   # Home Assistant
 
   - platform: homeassistant
@@ -63,6 +43,20 @@ sensor:
 
 text_sensor:
   - platform: homeassistant
+    id: thermostat_state
+    entity_id: climate.thermostat
+    on_value:
+      then:
+        - lvgl.widget.update:
+            id: button_thermostat_state_off
+            state:
+              checked: !lambda return strcmp(x.c_str(), "off") == 0;
+        - lvgl.widget.update:
+            id: button_thermostat_state_heat
+            state:
+              checked: !lambda return strcmp(x.c_str(), "heat") == 0;
+
+  - platform: homeassistant
     id: thermostat_hvac_action
     entity_id: climate.thermostat
     attribute: hvac_action
@@ -85,7 +79,17 @@ text_sensor:
     id: thermostat_preset_mode
     entity_id: climate.thermostat
     attribute: preset_mode
-    # TODO: update dropdown_thermostat_preset
+    on_value:
+      then:
+        - lvgl.dropdown.update:
+            id: dropdown_thermostat_preset
+            selected_index: !lambda |-
+              if (strcmp(id(thermostat_preset_mode).state.c_str(), "away") == 0) {
+                return 1;
+              } else if (strcmp(id(thermostat_preset_mode).state.c_str(), "comfort") == 0) {
+                return 2;
+              }
+              return 0;
 
   - platform: template
     id: thermostat_current_temperature_formatted
